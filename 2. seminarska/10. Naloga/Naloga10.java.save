@@ -1,0 +1,106 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Naloga10 {
+    private static class TreeNode {
+        int id;
+        char label;
+        List<Integer> children;
+
+        public TreeNode(int id, char label) {
+            this.id = id;
+            this.label = label;
+            this.children = new ArrayList<>();
+        }
+    }
+
+    private static class Tree {
+        TreeNode root;
+        List<TreeNode> nodes;
+
+        public Tree() {
+            this.nodes = new ArrayList<>();
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        // Preberi podatke o vzorcu P iz vhodne datoteke
+        Tree pattern = readTree(args[0]);
+
+        // Preberi podatke o ciljnem drevesu T iz vhodne datoteke
+        Tree target = readTree(args[0]);
+
+        // Poišči vse pojavitve vzorca P v drevesu T
+        int count = findMatches(pattern, target);
+
+        // Zapiši rezultat v izhodno datoteko
+        writeResult(args[1], count);
+    }
+
+    private static Tree readTree(String filePath) throws IOException {
+        Tree tree = new Tree();
+
+        BufferedReader reader = new BufferedReader(new FileReader(filePath));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] parts = line.split(",");
+            int id = Integer.parseInt(parts[0]);
+            char label = parts[1].charAt(0);
+
+            TreeNode node = new TreeNode(id, label);
+            tree.nodes.add(node);
+
+            if (tree.root == null) {
+                tree.root = node;
+            }
+
+            for (int i = 2; i < parts.length; i++) {
+                int childId = Integer.parseInt(parts[i]);
+                node.children.add(childId);
+            }
+        }
+        reader.close();
+
+        return tree;
+    }
+
+    private static int findMatches(Tree pattern, Tree target) {
+        return findMatches(pattern.root, target.root);
+    }
+
+    private static int findMatches(TreeNode patternNode, TreeNode targetNode) {
+        // Če oznake vozlišč niso enake, potem vzorec P ni prisoten v podatkovnem drevesu T
+        if (patternNode.label != targetNode.label) {
+            return 0;
+        }
+
+        // V nasprotnem primeru poglej, če se tudi ostali pogoji iz pogojev ujemanja izpolnjujejo
+        int count = 1;
+        for (int i = 0; i < patternNode.children.size(); i++) {
+           
+            TreeNode patternChild = getNodeById(patternNode.children.get(i), pattern.nodes);
+            TreeNode targetChild = getNodeById(targetNode.children.get(i), target.nodes);
+            count += findMatches(patternChild, targetChild);
+            }
+            return count;
+        }
+        
+        private static TreeNode getNodeById(int id, List<TreeNode> nodes) {
+            for (TreeNode node : nodes) {
+                if (node.id == id) {
+                    return node;
+                }
+            }
+            return null;
+        }
+        
+        private static void writeResult(String filePath, int count) throws IOException {
+            FileWriter writer = new FileWriter(filePath);
+            writer.write(String.valueOf(count));
+            writer.close();
+        }
+}        
